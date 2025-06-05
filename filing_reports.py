@@ -182,6 +182,12 @@ if __name__ == "__main__":
     # 2) Summarize (calls your existing Weave‐tracked function)
     summary = summarize_filing(raw_text)
 
+    # ─── ADD THESE TWO LINES ─────────────────────────────────────────────
+    print("DEBUG: summary type:", type(summary), "value:", summary)
+    if not isinstance(summary, dict):
+        raise RuntimeError(f"summarize_filing did not return a dict. Aborting.\nGot: {summary}")
+    # ─────────────────────────────────────────────────────────────────────
+
     # 3) Generate Word & PPTX (these are also Weave‐tracked ops!)
     out_dir = Path("./outputs")
     word_path = out_dir / "2022_10K_Analysis.docx"
