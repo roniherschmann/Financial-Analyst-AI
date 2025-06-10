@@ -1,2 +1,2 @@
 # Binomial-Tech
-- This is the repo for Binomial's tech offering. DO NOT SHARE.
+- python scripts for initializing prompts on wandb go here
