@@ -1,0 +1,144 @@
+# author: Roni Herschmann
+# initialization script for a Weave prompt to analyze Form 4 filings
+# form4_prompt_initialize.py
+
+import os
+from dotenv import load_dotenv
+import weave
+from weave import Prompt
+from typing import Dict, List, Any
+
+# Load environment variables from .env
+load_dotenv()
+
+# Initialize Weave for your W&B project
+weave.init("financial-advisor")
+
+class Form4Prompt(Prompt):
+    """
+    Custom Prompt for Form 4 Analysis:
+    - client_tpl: User instruction template
+    - system_config: Structured system metadata
+    - guidelines: Extraction and formatting instructions
+    - task: Desired output description
+    - output_style: Formatting requirements
+    - workflow: Step-by-step pipeline guidance
+    """
+    client_tpl: str = (
+        "Summarize {insider_name}'s Form 4 for {ticker} filed on {filing_date}. "
+        "Detail transaction type, quantity, price, and insider relationship."
+    )
+    system_config: Dict[str, Any] = {
+        "topic": "SEC Filings – Form 4 Insider Transaction",
+        "subject": "Structured extraction and summarization of Form 4 filed by {insider_name} for {ticker}",
+        "persona": "Data-driven equity research associate—detail-oriented, questioning, grounded in value theory",
+        "tone": "Institutional, skeptical, data-supported, and technical",
+        "context": "Equity research and insider-monitoring for a hedge fund or research firm or asset manager.",
+        "knowledge_scope": (
+            "Restrict to the specified Form 4 only; lightly or do not include other insider transactions unless directly relevant."
+        ),
+        "called_apis": [
+            "SEC EDGAR API",
+            "Insider-ownership databases (e.g., OpenInsider)",
+            "internal ownership-tracking templates"
+        ]
+    }
+    guidelines: List[str] = [
+        "1. Identify Transaction Details:  \n"
+        "   • Transaction date, type (purchase, sale, exercise), and security class.  \n"
+        "   • Number of shares acquired or disposed, price per share, and total value.",
+        "2. Insider Relationship & Context:  \n"
+        "   • Confirm {insider_name}'s role (officer, director, >10% holder).  \n"
+        "   • Note if transaction is part of a scheduled trading plan (Rule 10b5-1).",
+        "3. Calculate Post-Transaction Ownership:  \n"
+        "   • Extract shares owned before and after the transaction.  \n"
+        "   • Compute updated ownership percentage and discuss dilution/voting power impact.",
+        "4. Trading Pattern & Frequency:  \n"
+        "   • If historical data available, compare to prior Form 4s—any pattern (e.g., regular sales)?  \n"
+        "   • Highlight unusual trade sizes or timing (e.g., trading around earnings dates).",
+        "5. Related-Party & Governance Notes:  \n"
+        "   • Identify any related-party context (e.g., spouse transactions, trust vehicles).  \n"
+        "   • Note any corporate governance implications (e.g., insider selling when stock is up).",
+        "6. Regulatory & Red Flag Checks:  \n"
+        "   • Verify that Form 4 was filed within two business days—flag late filings.  \n"
+        "   • Identify any violations or unusual trading behavior (e.g., multiple rapid transactions).",
+        "7. Avoid Boilerplate:  \n"
+        "   • Do not copy standard Form 4 footers or preamble.  \n"
+        "   • Focus only on material transaction details and context.",
+        "8. User Engagement:  \n"
+        "   • At the end, ask: 'Do you want to review related Forms 3 or 5 for this insider?'"
+    ]
+    task: str = (
+        "Produce a 1-to-2-page summary (paragraphs + bullet points) covering:  \n"
+        "• Transaction Date, Type, Security Class  \n"
+        "• Shares Traded (quantity & price) and Total Value  \n"
+        "• Updated Ownership (pre- vs. post-transaction)  \n"
+        "• Insider Relationship & Trading Context  \n"
+        "• Historical Trading Pattern (if relevant)  \n"
+        "• Regulatory & Red Flag Checks  \n"
+        "• Concluding Question for Further Exploration"
+    )
+    output_style: str = (
+        "Word-doc style (internal-report format). Use numbered sections and subheadings. "
+        "Embed a small table if comparing pre- vs. post-transaction ownership or summarizing multiple transactions."
+    )
+    workflow: List[Dict[str, str]] = [
+        {"step": 1, "description": "Detect 'Form 4' request and parse placeholders {ticker}, {insider_name}, and {filing_date} from user prompt."},
+        {"step": 2, "description": "Fetch the specified Form 4 PDF/text from SEC EDGAR API for {ticker}, filed on {filing_date}, by {insider_name}."},
+        {"step": 3, "description": "Parse transaction sections: transaction date, type, security class, shares traded, and price."},
+        {"step": 4, "description": "Extract shares owned before and after the transaction; compute updated ownership percentage."},
+        {"step": 5, "description": "Check for patterns in prior Forms 4 (if accessible) to note unusual behavior or trading plan context."},
+        {"step": 6, "description": "Identify any red flags: late filing, large share sale/purchase, related-party involvement."},
+        {"step": 7, "description": "Assemble the structured summary following the 'task' outline. Use bullet points for clarity."},
+        {"step": 8, "description": "Add a concluding question: 'Do you want to review related Forms 3 or 5 for this insider?'"}
+    ]
+
+    def format(self, **kwargs) -> List[Dict[str, str]]:
+        # Fill client prompt
+        client = self.client_tpl.format(**kwargs)
+        # Serialize system_config
+        sys_parts = []
+        for key, val in self.system_config.items():
+            if isinstance(val, str):
+                sys_parts.append(f"{key}: {val.format(**kwargs)}")
+            else:
+                sys_parts.append(f"{key}: {', '.join(val)}")
+        full_system = "\n".join(sys_parts + self.guidelines + [self.task, self.output_style])
+        return [
+            {"role": "system", "content": full_system},
+            {"role": "user",   "content": client}
+        ]
+
+# Instantiate and publish
+form4_prompt = Form4Prompt()
+weave.publish(form4_prompt, name="generic_form4_prompt")
+
+# Example usage
+if __name__ == "__main__":
+    import os
+    from openai import OpenAI
+
+    # Load your LLM API keys via environment
+    api_key = os.getenv("OPENAI_API_KEY")
+    assert api_key, "Please set OPENAI_API_KEY in your .env"
+
+    # Initialize the OpenAI client
+    client = OpenAI(api_key=api_key)
+
+    # Format the prompt for a specific insider/ticker/filing_date
+    messages = form4_prompt.format(
+        insider_name="Tim Cook", 
+        ticker="AAPL", 
+        filing_date="2024-12-15"
+    )
+
+    # Call the chat completions endpoint
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        temperature=0.7,
+        max_tokens=1000,
+    )
+
+    # Extract and print the assistant's response
+    print(response.choices[0].message.content)
