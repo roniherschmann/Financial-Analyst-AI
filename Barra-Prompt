@@ -30,7 +30,7 @@ generic_barra_system_prompt = {
     "called_apis": [
         "Broker API Connector /(or through data_fetch.py",
         "Internal File Parser (CSV/Excel)",
-        "Market Data API via yfinance (or through data_fetch.py)",
+        "Market Data API via yfinance, refinitiv, bloomberg, capitalIQ, FRED, Edgar or other connected APIs (or through data_fetch.py)",
         "Factor Return Feed via ETF proxies",
         "barra_factor.py regression routines",
         "clean_visualizations.py for heatmaps and charts"
