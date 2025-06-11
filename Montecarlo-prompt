@@ -33,6 +33,7 @@ generic_montecarlo_system_prompt = {
         "Market Data API via yfinance (data_fetch.py)",
         "montecarlo.py simulation engine",
         "clean_visualizations.py for path & histogram plots"
+        "Market Data API via yfinance, refinitiv, bloomberg, capitalIQ, FRED, Edgar or other connected APIs (or through data_fetch.py)",
     ],
     "guidelines": [
         "1. Load portfolio via Broker API or parse input file; fallback to {tickers}/{weights}.",
