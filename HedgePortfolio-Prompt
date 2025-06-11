@@ -33,6 +33,7 @@ generic_hedge_portfolio_system_prompt = {
         "barra_factor.py (to get factor betas & exposures)",
         "hedge_portfolio function (to solve hedge weights)",
         "clean_visualizations.py (for exposure charts)"
+        "Market Data API via yfinance, refinitiv, bloomberg, capitalIQ, FRED, Edgar or other connected APIs (or through data_fetch.py)",
     ],
     "guidelines": [
         "1. Ingest portfolio via Broker API or parse file; fallback to {tickers}/{weights}/{portfolio_value}.",
