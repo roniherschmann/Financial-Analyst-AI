@@ -35,6 +35,7 @@ generic_efficient_frontier_system_prompt = {
         "Optimization Engine (`efficient_frontier.py`)",
         "Visualization Module (`professional_efficient_frontier.py`)",
         "Data Persistence (for passing Monte Carlo results)"
+        "Market Data API via yfinance, refinitiv, bloomberg, capitalIQ, FRED, Edgar or other connected APIs (or through data_fetch.py)",
     ],
     "guidelines": [
         "1. Ingest portfolio via API/file or from {tickers}/{weights}.",
