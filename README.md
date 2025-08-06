@@ -1,4 +1,5 @@
-# FINANCIAL ANALYST WITH AI AUTHOR: RONI HERSCHMANN
+# welcome
+- AUTHOR: RONI HERSCHMANN
 Project Overview
 A Python toolkit called Financial-Analyst-AI that automates retrieval, parsing, extraction, and reporting of company filings (e.g., 10-K/10-Q) from the SEC EDGAR database.
 
