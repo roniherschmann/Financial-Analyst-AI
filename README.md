@@ -2,7 +2,7 @@
 - AUTHOR: RONI HERSCHMANN
 
 ## 1. Project Overview
-- A Python toolkit called Financial-Analyst-AI that automates retrieval, parsing, extraction, and reporting of company filings (e.g., 10-K/10-Q) from the SEC EDGAR database.
+- A Financial AI Analyst coded in Python that automates the retrieval, parsing, extraction, and reporting of company filings (e.g., 10-K/10-Q) from the SEC EDGAR database.
 
 ## 2. Key Features
 - **Edgar fetch and summarization**: download filings via the EDGAR API and generate plain-English summaries.
